@@ -23,7 +23,8 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // client.connect();
 
-    const servicesCollections = client.db("talenthubDB").collection("services");
+    const jobsCollections = client.db("talenthubDB").collection("services");
+    const bidsCollections = client.db("talenthubDB").collection("bids");
 
     //Get jobs by category
     app.get("/api/jobs", async (req, res) => {
@@ -37,7 +38,7 @@ async function run() {
         if (email) {
           query["clientInfo.email"] = email;
         }
-        const result = await servicesCollections.find(query).toArray();
+        const result = await jobsCollections.find(query).toArray();
         res.send(result);
       } catch (error) {
         console.error("Error:", error);
@@ -52,7 +53,7 @@ async function run() {
       const id = req.params._id;
       console.log(id);
       const query = { _id: new ObjectId(id) };
-      const result = await servicesCollections.findOne(query);
+      const result = await jobsCollections.findOne(query);
       res.send(result);
     });
 
@@ -60,7 +61,7 @@ async function run() {
     app.post("/api/job", async (req, res) => {
       try {
         const job = req.body;
-        const result = await servicesCollections.insertOne(job);
+        const result = await jobsCollections.insertOne(job);
         res.send(result);
       } catch (err) {
         res.send(err);
@@ -72,7 +73,7 @@ async function run() {
       try {
         const id = req.params._id;
         const query = { _id: new ObjectId(id) }; // Convert the id to ObjectId
-        const result = await servicesCollections.deleteOne(query);
+        const result = await jobsCollections.deleteOne(query);
 
         if (result.deletedCount === 1) {
           res.send("Job deleted successfully");
@@ -87,6 +88,7 @@ async function run() {
       }
     });
 
+    // Update job by id
     app.put("/api/job/:_id", async (req, res) => {
       const id = req.params._id;
       const updatedJobData = req.body;
@@ -102,7 +104,7 @@ async function run() {
           maxPrice: updatedJobData.maxPrice,
         },
       };
-      const result = await servicesCollections.updateOne(
+      const result = await jobsCollections.updateOne(
         filter,
         updateProduct,
         options
@@ -110,6 +112,16 @@ async function run() {
       res.send(result);
     });
 
+    // Post bid
+    app.post("/api/bid", async (req, res) => {
+      try {
+        const job = req.body;
+        const result = await bidsCollections.insertOne(job);
+        res.send(result);
+      } catch (err) {
+        res.send(err);
+      }
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
