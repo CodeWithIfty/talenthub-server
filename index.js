@@ -122,6 +122,47 @@ async function run() {
         res.send(err);
       }
     });
+
+    // get bid by email
+    app.get("/api/bids", async (req, res) => {
+      try {
+        const userEmail = req.query.userEmail;
+        const clientEmail = req.query.clientEmail;
+
+        if (userEmail) {
+          const query = { "userInfo.email": userEmail };
+          const result = await bidsCollections.find(query).toArray();
+          res.send(result);
+          return;
+        }
+        if (clientEmail) {
+          const query = { "clientInfo.email": clientEmail };
+          const result = await bidsCollections.find(query).toArray();
+          res.send(result);
+          return;
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        res
+          .status(500)
+          .send("An error occurred while processing your request.");
+      }
+    });
+
+    //update status
+    app.put("/api/bid/:_id", async (req, res) => {
+      const id = req.params._id;
+      const updatedStatus = req.body;
+      const filter = { _id: new ObjectId(id) };
+
+      const updateProduct = {
+        $set: {
+          status: updatedStatus.status,
+        },
+      };
+      const result = await bidsCollections.updateOne(filter, updateProduct);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
