@@ -1,11 +1,20 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
-app.use(cors());
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.k4mfqh2.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -25,6 +34,39 @@ async function run() {
 
     const jobsCollections = client.db("talenthubDB").collection("services");
     const bidsCollections = client.db("talenthubDB").collection("bids");
+
+    // MiddleWare
+    const verifyUser = (req, res, next) => {
+      const token = req.cookies.token;
+      if (!token) {
+        return res.status(401).send({ message: "You are not Authorized" });
+      }
+      jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "You are not Authorized" });
+        }
+        console.log(decoded);
+        req.user = decoded;
+        next();
+      });
+    };
+    // Auth Related Api
+
+    app.post("/api/auth/access-token", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign({ user }, process.env.SECRET_KEY, {
+        expiresIn: "1h",
+      });
+      console.log(token);
+
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
+    });
 
     //Get jobs by category
     app.get("/api/jobs", async (req, res) => {
@@ -124,7 +166,7 @@ async function run() {
     });
 
     // get bid by email
-    app.get("/api/bids", async (req, res) => {
+    app.get("/api/bids", verifyUser, async (req, res) => {
       try {
         const userEmail = req.query.userEmail;
         const clientEmail = req.query.clientEmail;
@@ -163,6 +205,7 @@ async function run() {
       const result = await bidsCollections.updateOne(filter, updateProduct);
       res.send(result);
     });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
