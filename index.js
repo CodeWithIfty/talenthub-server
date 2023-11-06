@@ -91,7 +91,7 @@ async function run() {
     });
 
     //Get job by _id
-    app.get("/api/job/:_id", async (req, res) => {
+    app.get("/api/job/:_id", verifyUser, async (req, res) => {
       const id = req.params._id;
       console.log(id);
       const query = { _id: new ObjectId(id) };
@@ -100,7 +100,7 @@ async function run() {
     });
 
     //Post a job
-    app.post("/api/job", async (req, res) => {
+    app.post("/api/job", verifyUser, async (req, res) => {
       try {
         const job = req.body;
         const result = await jobsCollections.insertOne(job);
@@ -111,7 +111,7 @@ async function run() {
     });
 
     //Delete a job
-    app.delete("/api/job/:_id", async (req, res) => {
+    app.delete("/api/job/:_id", verifyUser, async (req, res) => {
       try {
         const id = req.params._id;
         const query = { _id: new ObjectId(id) }; // Convert the id to ObjectId
@@ -131,7 +131,7 @@ async function run() {
     });
 
     // Update job by id
-    app.put("/api/job/:_id", async (req, res) => {
+    app.put("/api/job/:_id", verifyUser, async (req, res) => {
       const id = req.params._id;
       const updatedJobData = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -155,7 +155,7 @@ async function run() {
     });
 
     // Post bid
-    app.post("/api/bid", async (req, res) => {
+    app.post("/api/bid", verifyUser, async (req, res) => {
       try {
         const job = req.body;
         const result = await bidsCollections.insertOne(job);
@@ -192,7 +192,7 @@ async function run() {
     });
 
     //update status
-    app.put("/api/bid/:_id", async (req, res) => {
+    app.put("/api/bid/:_id", verifyUser, async (req, res) => {
       const id = req.params._id;
       const updatedStatus = req.body;
       const filter = { _id: new ObjectId(id) };
