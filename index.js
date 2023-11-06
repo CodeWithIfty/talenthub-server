@@ -56,6 +56,7 @@ async function run() {
       res.send(result);
     });
 
+    //Post a job
     app.post("/api/job", async (req, res) => {
       try {
         const job = req.body;
@@ -65,6 +66,50 @@ async function run() {
         res.send(err);
       }
     });
+
+    //Delete a job
+    app.delete("/api/job/:_id", async (req, res) => {
+      try {
+        const id = req.params._id;
+        const query = { _id: new ObjectId(id) }; // Convert the id to ObjectId
+        const result = await servicesCollections.deleteOne(query);
+
+        if (result.deletedCount === 1) {
+          res.send("Job deleted successfully");
+        } else {
+          res.status(404).send("Job not found");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        res
+          .status(500)
+          .send("An error occurred while processing your request.");
+      }
+    });
+
+    app.put("/api/job/:_id", async (req, res) => {
+      const id = req.params._id;
+      const updatedJobData = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateProduct = {
+        $set: {
+          jobTitle: updatedJobData.jobTitle,
+          deadline: updatedJobData.deadline,
+          jobDescription: updatedJobData.jobDescription,
+          category: updatedJobData.category,
+          maxPrice: updatedJobData.maxPrice,
+          maxPrice: updatedJobData.maxPrice,
+        },
+      };
+      const result = await servicesCollections.updateOne(
+        filter,
+        updateProduct,
+        options
+      );
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
