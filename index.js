@@ -47,24 +47,7 @@ async function run() {
       }
     });
 
-    //Get job by _id
-    app.get("/api/job/:_id", async (req, res) => {
-      const id = req.params._id;
-      console.log(id);
-      const query = { _id: new ObjectId(id) };
-      const result = await servicesCollections.findOne(query);
-      res.send(result);
-    });
 
-    app.post("/api/job", async (req, res) => {
-      try {
-        const job = req.body;
-        const result = await servicesCollections.insertOne(job);
-        res.send(result);
-      } catch (err) {
-        res.send(err);
-      }
-    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
