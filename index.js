@@ -45,7 +45,6 @@ async function run() {
         if (err) {
           return res.status(401).send({ message: "You are not Authorized" });
         }
-        console.log(decoded);
         req.user = decoded;
         next();
       });
@@ -57,7 +56,6 @@ async function run() {
       const token = jwt.sign({ user }, process.env.SECRET_KEY, {
         expiresIn: "1h",
       });
-      console.log(token);
 
       res
         .cookie("token", token, {
@@ -73,6 +71,7 @@ async function run() {
       try {
         const category = req.query.category;
         const email = req.query.email;
+        const limit = parseInt(req.query.limit);
         const query = {};
         if (category) {
           query.category = category;
@@ -80,7 +79,12 @@ async function run() {
         if (email) {
           query["clientInfo.email"] = email;
         }
-        const result = await jobsCollections.find(query).toArray();
+
+        const cursor = jobsCollections.find(query).sort({ _id: -1 });
+        if (!isNaN(limit) && limit > 0) {
+          cursor.limit(limit);
+        }
+        const result = await cursor.toArray();
         res.send(result);
       } catch (error) {
         console.error("Error:", error);
