@@ -71,7 +71,11 @@ async function run() {
       try {
         const category = req.query.category;
         const email = req.query.email;
-        const limit = parseInt(req.query.limit);
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const pageSize = parseInt(req.query.pageSize) || 10;
+
+        const skip = (page - 1) * pageSize;
+
         const query = {};
         if (category) {
           query.category = category;
@@ -80,12 +84,14 @@ async function run() {
           query["clientInfo.email"] = email;
         }
 
-        const cursor = jobsCollections.find(query).sort({ _id: -1 });
-        if (!isNaN(limit) && limit > 0) {
-          cursor.limit(limit);
-        }
-        const result = await cursor.toArray();
-        res.send(result);
+        const totalCount = await jobsCollections.countDocuments(query);
+
+        const result = await jobsCollections
+          .find(query)
+          .skip(skip)
+          .limit(pageSize)
+          .toArray();
+        res.send({ totalCount, result });
       } catch (error) {
         console.error("Error:", error);
         res
@@ -95,7 +101,7 @@ async function run() {
     });
 
     //Get job by _id
-    app.get("/api/job/:_id", verifyUser, async (req, res) => {
+    app.get("/api/job/:_id", async (req, res) => {
       const id = req.params._id;
       console.log(id);
       const query = { _id: new ObjectId(id) };
