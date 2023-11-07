@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://talenthub-c77ac.web.app"],
     credentials: true,
   })
 );
@@ -30,7 +30,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // client.connect();
+    client.connect();
 
     const jobsCollections = client.db("talenthubDB").collection("services");
     const bidsCollections = client.db("talenthubDB").collection("bids");
@@ -103,7 +103,6 @@ async function run() {
     //Get job by _id
     app.get("/api/job/:_id", async (req, res) => {
       const id = req.params._id;
-      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await jobsCollections.findOne(query);
       res.send(result);
