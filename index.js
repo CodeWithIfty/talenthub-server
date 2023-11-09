@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ["https://talenthub-c77ac.web.app"],
+    origin: ["https://talenthub-c77ac.web.app", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -45,6 +45,7 @@ async function run() {
         if (err) {
           return res.status(401).send({ message: "You are not Authorized" });
         }
+        // console.log(decoded)
         req.user = decoded;
         next();
       });
@@ -64,6 +65,12 @@ async function run() {
           sameSite: "none",
         })
         .send({ success: true });
+    });
+
+    app.post("/api/logout", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
     //Get jobs by category
@@ -177,20 +184,26 @@ async function run() {
     // get bid by email
     app.get("/api/bids", verifyUser, async (req, res) => {
       try {
+        const reqEmail = req.user.user.userEmail;
         const userEmail = req.query.userEmail;
         const clientEmail = req.query.clientEmail;
 
-        if (userEmail) {
-          const query = { "userInfo.email": userEmail };
-          const result = await bidsCollections.find(query).toArray();
-          res.send(result);
-          return;
+        if (reqEmail === userEmail) {
+          if (userEmail) {
+            const query = { "userInfo.email": userEmail };
+            const result = await bidsCollections.find(query).toArray();
+            res.send(result);
+            return;
+          }
         }
-        if (clientEmail) {
-          const query = { "clientInfo.email": clientEmail };
-          const result = await bidsCollections.find(query).toArray();
-          res.send(result);
-          return;
+
+        if (reqEmail === clientEmail) {
+          if (clientEmail) {
+            const query = { "clientInfo.email": clientEmail };
+            const result = await bidsCollections.find(query).toArray();
+            res.send(result);
+            return;
+          }
         }
       } catch (error) {
         console.error("Error:", error);
