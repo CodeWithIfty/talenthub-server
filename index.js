@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ["https://talenthub-c77ac.web.app", "http://localhost:5173"],
+    origin: ["https://talenthub-c77ac.web.app"],
     credentials: true,
   })
 );
