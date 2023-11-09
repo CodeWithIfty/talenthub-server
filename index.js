@@ -69,8 +69,12 @@ async function run() {
 
     app.post("/api/logout", async (req, res) => {
       const user = req.body;
-      console.log(user);
-      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+      console.log("logging out", user);
+      res
+        .clearCookie("token", {
+          maxAge: 0,
+        })
+        .send({ success: true });
     });
 
     //Get jobs by category
